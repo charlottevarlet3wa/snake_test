@@ -1,13 +1,17 @@
 const config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: window.innerWidth, // Utiliser la largeur de la fenêtre
+  height: window.innerHeight, // Utiliser la hauteur de la fenêtre
   backgroundColor: "#2d2d2d",
   physics: {
     default: "arcade",
     arcade: {
       debug: false,
     },
+  },
+  scale: {
+    mode: Phaser.Scale.RESIZE, // Redimensionne automatiquement le canvas
+    autoCenter: Phaser.Scale.CENTER_BOTH, // Centre automatiquement le canvas
   },
   scene: {
     preload: preload,
@@ -104,6 +108,11 @@ function create() {
   this.input.on("pointermove", (pointer) => {
     mouseX = pointer.x + this.cameras.main.scrollX; // Ajuster en fonction du décalage de la caméra
     mouseY = pointer.y + this.cameras.main.scrollY;
+  });
+
+  // Redimensionner dynamiquement le canvas à chaque redimensionnement de la fenêtre
+  window.addEventListener("resize", () => {
+    game.scale.resize(window.innerWidth, window.innerHeight); // Redimensionner le jeu
   });
 }
 
