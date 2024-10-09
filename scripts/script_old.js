@@ -24,8 +24,8 @@ let game = new Phaser.Game(config);
 let snake;
 let food;
 let cursors;
-let speed = 750; // Vitesse initiale du serpent
-let normalSpeed = 750; // Vitesse normale du serpent
+let speed = 2000; // Vitesse initiale du serpent
+let normalSpeed = 2000; // Vitesse normale du serpent
 let fastSpeed = 1500; // Vitesse rapide lorsque ArrowUp est appuyée
 let turnSpeed = 3; // Vitesse de rotation
 let lastMoveTime = 0;
@@ -58,20 +58,20 @@ function create() {
   snake = this.add.group();
 
   // Ajouter la tête du serpent en utilisant un sprite avec une texture dynamique
-  createCircleTexture(this, "snakeSegment", 20, 0xff0000); // Créer une texture de 20px rouge
+  createCircleTexture(this, "snakeSegment", 40, 0xff0000); // Taille du segment augmentée à 40px
   let head = this.physics.add
     .sprite(400, 300, "snakeSegment")
     .setOrigin(0.5, 0.5);
-  head.setCircle(10); // Définit la zone de collision en cercle
+  head.setCircle(20); // Ajuster la zone de collision à la nouvelle taille (40px de diamètre)
   head.body.setCollideWorldBounds(true); // Empêcher le serpent de sortir du monde
   snake.add(head);
 
   // Ajouter 10 anneaux derrière la tête
-  for (let i = 1; i <= 10; i++) {
+  for (let i = 1; i <= 0; i++) {
     let ring = this.physics.add
-      .sprite(400 - i * 20, 300, "snakeSegment")
+      .sprite(400 - i * 40, 300, "snakeSegment") // Ajuster l'espacement selon la nouvelle taille
       .setOrigin(0.5, 0.5);
-    ring.setCircle(10); // Zone de collision
+    ring.setCircle(20); // Ajuster la zone de collision pour chaque segment
     snake.add(ring); // Ajouter chaque anneau au groupe "snake"
   }
 
@@ -188,31 +188,42 @@ function addFood() {
     food.destroy(); // Détruire l'ancien sprite de nourriture
   }
 
-  // Créer une texture pour la nourriture
-  createCircleTexture(sceneContext, "foodTexture", 20, 0x8b4513); // Texture marron pour la nourriture
+  // Générer une couleur aléatoire pour la nourriture
+  const randomColor = Phaser.Display.Color.RandomRGB().color;
+
+  // Créer une texture pour la nourriture avec la couleur aléatoire
+  createCircleTexture(sceneContext, "foodTexture", 40, randomColor);
   food = sceneContext.physics.add.sprite(
     Phaser.Math.Between(50, 1550),
     Phaser.Math.Between(50, 1150),
     "foodTexture"
   );
-  food.setCircle(10); // Zone de collision en cercle
+  food.setCircle(20); // Zone de collision ajustée pour la nouvelle taille de la nourriture
   food.setImmovable(true); // La nourriture ne bouge pas
+
+  // Stocker la couleur pour l'utiliser dans le nouveau segment du serpent
+  food.currentColor = randomColor;
 }
 
 function eatFood() {
   // Ajouter un nouveau segment au serpent à la position du dernier segment
   let lastSegment = snake.getChildren()[snake.getChildren().length - 1];
+
+  // Créer une texture unique pour chaque nouveau segment basé sur un identifiant unique
+  const uniqueTextureKey = `segment_${snake.getChildren().length}`; // Utiliser la longueur du serpent comme identifiant
+  createCircleTexture(sceneContext, uniqueTextureKey, 40, food.currentColor); // Créer une nouvelle texture pour chaque segment
+
   let newSegment = sceneContext.physics.add
-    .sprite(lastSegment.x, lastSegment.y, "snakeSegment")
+    .sprite(lastSegment.x, lastSegment.y, uniqueTextureKey) // Appliquer la texture unique
     .setOrigin(0.5, 0.5);
-  newSegment.setCircle(10); // Ajuster la zone de collision pour le nouveau segment
+
+  newSegment.setCircle(20); // Ajuster la zone de collision pour le nouveau segment
   snake.add(newSegment); // Ajouter le nouveau segment au serpent
 
   // Réapparaître une nouvelle nourriture
   addFood();
 }
 
-// Fonction pour créer une texture de cercle dynamique
 function createCircleTexture(scene, key, size, color) {
   const graphics = scene.make.graphics({ x: 0, y: 0, add: false });
   graphics.fillStyle(color, 1);
